@@ -8,7 +8,7 @@ with open('CACM_collection_docs', 'rb') as f :
 def boolean_research(query):
 
     tokens = Lexer(query)
-    tree = Parser(tokens)
+    tree = Parser(tokens).parse()
     docIDs = Interpreter(tree).interpret()
 
     results = []
@@ -19,7 +19,7 @@ def boolean_research(query):
     return "{} documents found.\n\nList of docs corresponding to the query: {}".format(len(results),results)
 
 if __name__ == "__main__":
-    q = "master and data"
+    q = "(document or master) and not (data or access)"
     r = boolean_research(q)
 
     print("Query: " + q + "\n")

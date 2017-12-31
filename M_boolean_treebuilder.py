@@ -8,6 +8,11 @@ with open('CACM_index_inverse', 'rb') as f :
     u = pickle.Unpickler(f)
     INDEX_DATA = u.load()
 
+with open('CACM_collection_docs', 'rb') as f:
+    u = pickle.Unpickler(f)
+    COLLECTION = u.load()
+COLLECTION_IDS = range(1, len(COLLECTION))
+
 def get_postings(word):
     """ Returns the postings if word in index """
     try: 
@@ -19,7 +24,7 @@ def get_postings(word):
 
 
 # Token types (EOF = end-of-file)
-OPERAND, AND, OR, LPAREN, RPAREN, EOF = ('OPERAND', 'AND', 'OR', '(', ')', 'EOF')
+OPERAND, AND, OR, LPAREN, RPAREN, NOT, EOF = ('OPERAND', 'AND', 'OR', '(', ')', 'NOT', 'EOF')
 
 class Token:
     def __init__(self, t_type, value):
@@ -51,6 +56,8 @@ class Lexer:
                 tokens.append(Token(OR, 'or'))
             elif elt == 'and':
                 tokens.append(Token(AND, 'and'))
+            elif elt == 'not':
+                tokens.append(Token(NOT, 'not'))
             else:
                 tokens.append(Token(OPERAND, get_postings(elt)))
         tokens.append(Token(EOF, None))
@@ -77,6 +84,14 @@ class BinOp:
     def __repr__(self):
         return "BinOp_node(l: {} - o: {} - r: {})".format(self.left, self.op, self.right)
 
+class UnaryOp:
+    def __init__(self, op, expr):
+        self.token = self.op = op
+        self.expr = expr
+
+    def __repr__(self):
+        return "UnaryOp_node(not: {})".format(self.expr)
+
 class Operand:
     def __init__(self, token):
         self.token = token
@@ -100,8 +115,13 @@ class Parser:
             self.error()
     
     def factor(self):
+        """factor : NOT factor | INTEGER | LPAREN expr RPAREN"""
         token = self.current_token
-        if token.type == OPERAND:
+        if token.type == NOT:
+            self.eat(NOT)
+            node = UnaryOp(token, self.factor())
+            return node 
+        elif token.type == OPERAND:
             self.eat(OPERAND)
             return Operand(token)
         elif token.type == LPAREN:
@@ -150,20 +170,23 @@ class NodeVisitor:
 
 class Interpreter(NodeVisitor):
     def __init__(self, tree):
-        self.parser = tree
+        self.parsed_tree = tree
     
     def visit_BinOp(self, node):
         if node.op.type == AND:
             return intersect(self.visit(node.left), self.visit(node.right))
         elif node.op.type == OR:
             return union(self.visit(node.left), self.visit(node.right))
-        
+    
+    def visit_UnaryOp(self, node):
+        op = node.op.type
+        return [x for x in COLLECTION_IDS if x not in self.visit(node.expr)]
+
     def visit_Operand(self, node):
         return node.value
 
     def interpret(self):
-        tree = self.parser.parse()
-        return self.visit(tree)
+        return self.visit(self.parsed_tree)
 
         
 def intersect(postings1,postings2):
@@ -194,11 +217,15 @@ def union(postings1, postings2):
 
 if __name__ == "__main__":
     
-    t = "(a1 and algorithmic)"
+    t = "a1 and not (algorithmic or access)"
     l = Lexer(t)
-    tree = Parser(l)
+    tree = Parser(l).parse()
 
-    eval_tree = Interpreter(tree)
-    print(eval_tree.interpret())
+    # --- to print tree
+    # print(tree)
+
+    # --- to evaluate tree
+    eval_tree = Interpreter(tree).interpret()
+    print(eval_tree)
 
     
