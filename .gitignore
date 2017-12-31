@@ -1,4 +1,5 @@
 data/
 old/
 
-\CACM_*
+test*
+CACM_*
