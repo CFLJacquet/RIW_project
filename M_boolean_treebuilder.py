@@ -1,12 +1,13 @@
+import json
 import pickle
 
 # --------------------------------------
 # Request tokenizer 
 # --------------------------------------
 
-with open('CACM_index_inverse', 'rb') as f :
-    u = pickle.Unpickler(f)
-    INDEX_DATA = u.load()
+
+with open('CACM_index_inverse.json', 'r') as f:
+    INDEX_DATA = json.load(f)
 
 with open('CACM_collection_docs', 'rb') as f:
     u = pickle.Unpickler(f)
@@ -14,13 +15,16 @@ with open('CACM_collection_docs', 'rb') as f:
 COLLECTION_IDS = range(1, len(COLLECTION))
 
 def get_postings(word):
-    """ Returns the postings if word in index """
+    """ Returns a tuple (postings (with tf-idf), postings) if word in index """
     try: 
-        postings = [ list(x[2]) for x in INDEX_DATA if x[0] == word ][0]
+        doc_tfidf = [ list(x[2]) for x in INDEX_DATA if x[0] == word ][0]
+        postings = [ docID[0] for docID in doc_tfidf ]
     except:
-        raise ValueError("word '{}' not found in index".format(word))
+        doc_tfidf = [[0, 0]]
+        postings = []
+        print("word '{}' not found in index".format(word))
     
-    return postings
+    return doc_tfidf, postings
 
 
 # Token types (EOF = end-of-file)
@@ -59,7 +63,7 @@ class Lexer:
             elif elt == 'not':
                 tokens.append(Token(NOT, 'not'))
             else:
-                tokens.append(Token(OPERAND, get_postings(elt)))
+                tokens.append(Token(OPERAND, get_postings(elt)[1]))
         tokens.append(Token(EOF, None))
         return tokens
 

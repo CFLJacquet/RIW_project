@@ -1,14 +1,18 @@
 import re
 import pickle
+import json
+from math import log10
+from nltk.probability import FreqDist
 from nltk.tokenize import RegexpTokenizer
 from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
 from M_document import Document
 
 tokenizer = RegexpTokenizer(r'\w+')
 
-def get_docs(name):
-    """ Pre-treatment of document """
-    with open(name, 'r') as fp:
+def create_collection(name_of_source):
+    """ Pre-treatment of document. Creates a doc collection and a text collection """
+    with open(name_of_source, 'r') as fp:
         collection = {}
         write = ""
         ID = 0
@@ -40,64 +44,124 @@ def get_docs(name):
     del txt[0]
     del collection[0]
 
-    with open('CACM_collection_txt', 'wb') as fichier:
-        p = pickle.Pickler(fichier)
-        p.dump(txt)
     with open('CACM_collection_docs', 'wb') as fichier:
         p = pickle.Pickler(fichier)
         p.dump(collection)
+    
+    with open('CACM_collection_txt.json', 'w') as outfile :
+        json.dump(txt, outfile)
 
-def tok_filter_collection(collection):
-    """ Map - treatment of tokens (to significant unique words for each doc)"""
 
-    dictionary= []
-    nb_tokens = 0 
+def tokenizer_tf(text, docID):
+    """ Map - treatment of tokens (to significant unique words for each doc). 
+    Returns a list of filtered terms: (term, (docID, term_freq)) """
+
     stop = open("data/common_words", 'r').read()
+    keywords =[]
+    fdist = FreqDist()
+    lemmatizer = WordNetLemmatizer()
 
-    for i in range (1, len(collection)+1): 
-        tokens = tokenizer.tokenize(collection[i])
-        nb_tokens += len(tokens)
-        for elt in tokens:
-            w = elt.lower()
-            if w not in stop and not re.match(r"[0-9]+", w):
-                #lemmetization ou racinisation
-                dictionary.append((w, i))
-    print("nb tokens: " + str(nb_tokens))
+    # Tokenizes the doc, and the lemma of meaningful words are added.
+    tokens = tokenizer.tokenize(text)
+    for elt in tokens:
+        w = elt.lower()
+        if w not in stop and not re.match(r"[0-9]+", w):
+            keywords.append(lemmatizer.lemmatize(w))
 
-    no_duplicates = list(set(dictionary))
+    fdist = FreqDist(keywords)
+    result = [(x[0],(docID, 1+log10(x[1]))) for x in fdist.items()]
     
-    return no_duplicates
+    return result
 
-def sort_ag(tokens):
-    """ Shuffle - sort & reduce """
-    s_list = sorted(tokens)
-
-    s_list = [(x[0], 1, x[1]) for x in s_list]
+def aggregate_idf(full_word_list):
+    """ Creates the reverse index: list of (term, collection_freq, [posting_list: (docID, tf-idf)]) """
     
-    d =[s_list[0]]
-    for i in range (1, len(s_list)):
-        if s_list[i][0] != s_list[i-1][0]:
-            d.append(s_list[i])
+    term = [(x[0], 1, [x[1]]) for x in full_word_list]
+    
+    # Adds word to reverse index if it is different from the last entry in the index, 
+    # otherwise, it appends the (docID, tf) and increases the df
+    d =[term[0]]
+    for i in range (1, len(term)):
+        if term[i][0] != term[i-1][0]:
+            d.append(term[i])
         else:
-            d[len(d)-1] = (d[len(d)-1][0], d[len(d)-1][1] + 1,d[len(d)-1][2]+s_list[i][2])
+            print()
+            d[len(d)-1] = (d[len(d)-1][0], d[len(d)-1][1] + 1, d[len(d)-1][2] + term[i][2])
 
-    with open('CACM_index_inverse', 'wb') as fichier:
-        p = pickle.Pickler(fichier)
-        p.dump(d)
+    # Calculates the df for each doc and replaces tf by tf*idf for each docID
+    result = []
+    for elt in d:
+        term = [elt[0], elt[1], []]
+        for posting in elt[2]:
+            r = posting[0], posting[1] * log10( len(d) / elt[1] )
+            term[2].append(r)
+        result.append(term)
 
-    return d
+    return result
+
+
+def create_index(source):
+    """ Creates the reverse index file (json) """
+    
+    words = []
+    with open(source, 'r') as f:
+        collection = json.load(f)
+    
+    for key, value in collection.items():
+        tokens = tokenizer_tf(value, int(key))
+        words += tokens
+    
+    s_list = sorted(words)
+    
+    reverse_index = aggregate_idf(s_list)
+
+    with open('CACM_index_inverse.json', 'w') as outfile :
+        json.dump(reverse_index, outfile)
+    print("the index contains {} words".format(len(reverse_index)))
+
+
+
+def doc_vector_length():
+    """ Create json file with doc vector lengths = sum( (tf-idf)² ) """
+
+    with open('CACM_index_inverse.json', 'r') as f:
+        index = json.load(f)
+
+    with open('CACM_collection_txt.json', 'r') as f:
+        txts = json.load(f)
+    
+    doc_index = {}
+    for elt in txts.keys() :
+        doc_index[elt] = 0
+
+    for word in index:
+        postings = word[2]
+        for doc in postings:
+            doc_index[str(doc[0])] += doc[1] ** 2            
+
+# Super heavy --> vecteurs creux
+        # for docID in doc_index.keys():
+        #     print("doc #{}".format(docID))
+        #     try: 
+        #         if int(docID) == postings[0][0] :
+        #             doc_index[docID].append(postings[0][1])
+        #             del postings[0]
+        #         else:
+        #             doc_index[docID].append(0)
+        #     except IndexError:
+        #         doc_index[docID].append(0)
+
+    
+    with open('CACM_doc_index.json', 'w') as outfile :
+        json.dump(doc_index, outfile)
+        
 
 if __name__ == "__main__":
     # --- Create documents collection file (both as doc object and txt for further processing)
-    get_docs("data/cacm.all")
+    # create_collection("data/cacm.all")
     
     # --- Create reverse index
-    # with open('CACM_collection_txt', 'rb') as fichier:
-    #     d = pickle.Unpickler(fichier)
-    #     txt = d.load()
+    # create_index('CACM_collection_txt.json')
     
-    # tokens = tok_filter_collection(txt)
-    
-    # dictionary = sort_ag(tokens)
-    
-    # print(len(dictionary))
+    # --- Create doc vector length : sum(tf-idf)²
+    doc_vector_length()
