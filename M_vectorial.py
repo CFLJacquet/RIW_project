@@ -26,7 +26,7 @@ def vect_search(query, rappel=10):
     for i in range(len(q)):
         postings = get_postings(q[i][0])[0]
         try:
-            w_q = q[i][1][1] * log10( len(COLLECTION)+1 / len(postings) )
+            w_q = q[i][1][1] / len(q)
         except ZeroDivisionError:
             w_q = 0
         #print("mot: {} - in {} docs - poids: {}".format(q[i], len(postings), w_q))
@@ -47,7 +47,7 @@ def vect_search(query, rappel=10):
     for elt in s :
         result.append((COLLECTION[elt[0]], "weight: {}".format(round(elt[1], 2))))
     
-    return result
+    return [str(x[0]) for x in s], result
     
 
 if __name__ == "__main__":

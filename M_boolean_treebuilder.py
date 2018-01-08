@@ -226,7 +226,7 @@ if __name__ == "__main__":
     tree = Parser(l).parse()
 
     # --- to print tree
-    # print(tree)
+    print(tree)
 
     # --- to evaluate tree
     eval_tree = Interpreter(tree).interpret()
