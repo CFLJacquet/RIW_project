@@ -1,4 +1,6 @@
 import pickle
+from pprint import pprint
+
 from M_boolean_treebuilder import Lexer, Parser, Interpreter
 
 with open('CACM_collection_docs', 'rb') as f :
@@ -22,6 +24,6 @@ if __name__ == "__main__":
     # --- to test the boolean search function
     q = "(document or master) and not (data or access)"
     r = boolean_research(q)
-    print(r)
+    pprint(r)
 
 

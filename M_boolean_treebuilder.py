@@ -22,7 +22,7 @@ def get_postings(word):
     except:
         doc_tfidf = [[0, 0]]
         postings = []
-        print("word '{}' not found in index".format(word))
+        print("No exact match for word '{}'.".format(word))
     
     return doc_tfidf, postings
 

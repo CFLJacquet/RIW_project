@@ -3,7 +3,7 @@ import pickle
 from math import log10, sqrt
 from R_indexation import tokenizer_tf
 from M_boolean_treebuilder import get_postings
-
+from pprint import pprint
 
 with open('CACM_index_inverse.json', 'r') as f:
     INDEX_DATA = json.load(f)
@@ -16,9 +16,8 @@ with open('CACM_collection_docs', 'rb') as f:
     COLLECTION = u.load()
 COLLECTION_IDS = range(1, len(COLLECTION))
 
+def vect_search(query, rappel=10):
 
-def vect_search(query):
-    
     # Calculates (1+log10(tf)) for each word in the query
     q = tokenizer_tf(query, 0)
     n_q = 0
@@ -30,23 +29,27 @@ def vect_search(query):
             w_q = q[i][1][1] * log10( len(COLLECTION)+1 / len(postings) )
         except ZeroDivisionError:
             w_q = 0
-
-        print("mot: {} - in {} docs - poids: {}".format(q[i], len(postings), w_q))
+        #print("mot: {} - in {} docs - poids: {}".format(q[i], len(postings), w_q))
     
         n_q += w_q ** 2
         for doc in postings:
             w_doc = doc[1]      # calculation (tf-idf) already done during indexation
-            sim[doc[0]][1] += w_doc * w_q
+            sim[doc[0]-1][1] += w_doc * w_q
 
     for j, elt in enumerate(sim):
+        n_d = DOC_LENGTH[str(j+1)]
         if elt[1] != 0:
-            elt[1] = elt[1] / ( sqrt( n_q * DOC_LENGTH[str(j) ]) ) 
-        
-    print(sorted(sim, key=lambda x:x[1], reverse=True)[:10])
+            elt[1] = elt[1] / ( sqrt( n_q * n_d ) ) 
 
+    s = sorted(sim, key=lambda x:x[1], reverse=True)[:rappel]
+
+    result = []
+    for elt in s :
+        result.append((COLLECTION[elt[0]], "weight: {}".format(round(elt[1], 2))))
     
-    
+    return result
     
 
-
-vect_search('particular system Butcher')
+if __name__ == "__main__":
+    t = " code optimization for space efficiency"
+    pprint(vect_search(t))

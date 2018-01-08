@@ -56,7 +56,7 @@ def tokenizer_tf(text, docID):
     """ Map - treatment of tokens (to significant unique words for each doc). 
     Returns a list of filtered terms: (term, (docID, term_freq)) """
 
-    stop = open("data/common_words", 'r').read()
+    stop = open("data/common_words", 'r').read().split('\n')
     keywords =[]
     fdist = FreqDist()
     lemmatizer = WordNetLemmatizer()
@@ -76,6 +76,9 @@ def tokenizer_tf(text, docID):
 def aggregate_idf(full_word_list):
     """ Creates the reverse index: list of (term, collection_freq, [posting_list: (docID, tf-idf)]) """
     
+    with open('CACM_collection_txt.json', 'r') as f:
+        txts = json.load(f)
+
     term = [(x[0], 1, [x[1]]) for x in full_word_list]
     
     # Adds word to reverse index if it is different from the last entry in the index, 
@@ -93,7 +96,7 @@ def aggregate_idf(full_word_list):
     for elt in d:
         term = [elt[0], elt[1], []]
         for posting in elt[2]:
-            r = posting[0], posting[1] * log10( len(d) / elt[1] )
+            r = posting[0], posting[1] * log10( (len(txts) + 1) / elt[1] )
             term[2].append(r)
         result.append(term)
 
@@ -161,7 +164,7 @@ if __name__ == "__main__":
     # create_collection("data/cacm.all")
     
     # --- Create reverse index
-    # create_index('CACM_collection_txt.json')
+    create_index('CACM_collection_txt.json')
     
     # --- Create doc vector length : sum(tf-idf)²
     doc_vector_length()
