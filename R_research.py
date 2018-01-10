@@ -45,7 +45,7 @@ def vectorial_search(rappel = 10):
 
 
 if __name__ == "__main__":
-    # # --- to test the boolean search function
+    # --- to test the boolean search function
     # q = "(document or master) and not (data or access)"
     # r = boolean_research(q)
     # print(r)
