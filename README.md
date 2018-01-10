@@ -14,7 +14,7 @@ Modèles de recherche utilisés:
 
 ## Utiliser l'outil
 
-Ouvrez le module R_research.py et décommentez les lignes pour tester les deux types de modèle
+Ouvrez le module ```R_research.py``` et décommentez les lignes pour tester les deux types de modèle
 
 ```
 if __name__ == "__main__":
