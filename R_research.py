@@ -1,6 +1,7 @@
 import pickle
 from pprint import pprint
 import json
+import matplotlib.pyplot as plt
 
 from M_boolean_treebuilder import Lexer, Parser, Interpreter
 from M_vectorial import vect_search
@@ -23,34 +24,22 @@ def boolean_research(query, rappel = 10):
     return "{} documents found.\n\nList of the first {} docs corresponding to the query: {}".format(len(results), rappel, results[:rappel])
 
 
-def vectorial_search(rappel = 10):
+def vectorial_search(query, rappel = 10):
 
-    with open('CACM_questions.json', 'r') as f:
-        q = json.load(f)
-    with open('CACM_answers.json', 'r') as f:
-        a = json.load(f)
-
-    for num, question in q.items():
-        
-        results = vect_search(question, rappel)
-
-        print(question)
-        print(a[num])
-        print(results[0])
-        print("matching results: {}\n".format([i for i in a[num] if i in results[0]]))
-
-        print(results[1])
-        input()
-        
-
+    doc_list = vect_search(query)[:rappel]
+    result = []
+    for elt in doc_list :
+        result.append(DOCUMENTS[int(elt)])
+    
+    return result
 
 if __name__ == "__main__":
     # --- to test the boolean search function
-    # q = "(document or master) and not (data or access)"
-    # r = boolean_research(q)
-    # print(r)
+    q = "(document or master) and not (data or access)"
+    r = boolean_research(q)
+    print(r)
 
     # --- to test the vectorial search fct
-    vectorial_search(20)
-
+    # t = " code optimization for space efficiency"
+    # pprint(vectorial_search(t))
 

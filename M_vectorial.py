@@ -16,7 +16,7 @@ with open('CACM_collection_docs', 'rb') as f:
     COLLECTION = u.load()
 COLLECTION_IDS = range(1, len(COLLECTION))
 
-def vect_search(query, rappel=10):
+def vect_search(query):
 
     # Calculates (1+log10(tf)) for each word in the query
     q = tokenizer_tf(query, 0)
@@ -41,13 +41,14 @@ def vect_search(query, rappel=10):
         if elt[1] != 0:
             elt[1] = elt[1] / ( sqrt( n_q * n_d ) ) 
 
-    s = sorted(sim, key=lambda x:x[1], reverse=True)[:rappel]
+    s = sorted(sim, key=lambda x:x[1], reverse=True)
 
-    result = []
-    for elt in s :
-        result.append((COLLECTION[elt[0]], "weight: {}".format(round(elt[1], 2))))
+    # ----- To display the title of the docs 
+    # result = []
+    # for elt in s :
+    #     result.append((COLLECTION[elt[0]], "weight: {}".format(round(elt[1], 2))))
     
-    return [str(x[0]) for x in s], result
+    return [str(x[0]) for x in s]  #, result
     
 
 if __name__ == "__main__":

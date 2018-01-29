@@ -167,4 +167,4 @@ if __name__ == "__main__":
     create_index('CACM_collection_txt.json')
     
     # --- Create doc vector length : sum(tf-idf)²
-    doc_vector_length()
+    #doc_vector_length()
