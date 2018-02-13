@@ -6,10 +6,10 @@ import pickle
 # --------------------------------------
 
 
-with open('CACM_index_inverse.json', 'r') as f:
+with open('clean_data/CACM_index_inverse.json', 'r') as f:
     INDEX_DATA = json.load(f)
 
-with open('CACM_collection_docs', 'rb') as f:
+with open('clean_data/CACM_collection_docs', 'rb') as f:
     u = pickle.Unpickler(f)
     COLLECTION = u.load()
 COLLECTION_IDS = range(1, len(COLLECTION))
@@ -119,7 +119,7 @@ class Parser:
             self.error()
     
     def factor(self):
-        """factor : NOT factor | INTEGER | LPAREN expr RPAREN"""
+        """factor : NOT factor | OPERAND | LPAREN expr RPAREN"""
         token = self.current_token
         if token.type == NOT:
             self.eat(NOT)

@@ -44,11 +44,11 @@ def create_collection(name_of_source):
     del txt[0]
     del collection[0]
 
-    with open('CACM_collection_docs', 'wb') as fichier:
+    with open('clean_data/CACM_collection_docs', 'wb') as fichier:
         p = pickle.Pickler(fichier)
         p.dump(collection)
     
-    with open('CACM_collection_txt.json', 'w') as outfile :
+    with open('clean_data/CACM_collection_txt.json', 'w') as outfile :
         json.dump(txt, outfile)
 
 
@@ -76,7 +76,7 @@ def tokenizer_tf(text, docID):
 def aggregate_idf(full_word_list):
     """ Creates the reverse index: list of (term, collection_freq, [posting_list: (docID, tf-idf)]) """
     
-    with open('CACM_collection_txt.json', 'r') as f:
+    with open('clean_data/CACM_collection_txt.json', 'r') as f:
         txts = json.load(f)
 
     term = [(x[0], 1, [x[1]]) for x in full_word_list]
@@ -118,7 +118,7 @@ def create_index(source):
     
     reverse_index = aggregate_idf(s_list)
 
-    with open('CACM_index_inverse.json', 'w') as outfile :
+    with open('clean_data/CACM_index_inverse.json', 'w') as outfile :
         json.dump(reverse_index, outfile)
     print("the index contains {} words".format(len(reverse_index)))
 
@@ -127,10 +127,10 @@ def create_index(source):
 def doc_vector_length():
     """ Create json file with doc vector lengths = sum( (tf-idf)² ) """
 
-    with open('CACM_index_inverse.json', 'r') as f:
+    with open('clean_data/CACM_index_inverse.json', 'r') as f:
         index = json.load(f)
 
-    with open('CACM_collection_txt.json', 'r') as f:
+    with open('clean_data/CACM_collection_txt.json', 'r') as f:
         txts = json.load(f)
     
     doc_index = {}
@@ -142,20 +142,7 @@ def doc_vector_length():
         for doc in postings:
             doc_index[str(doc[0])] += doc[1] ** 2            
 
-# Super heavy --> vecteurs creux
-        # for docID in doc_index.keys():
-        #     print("doc #{}".format(docID))
-        #     try: 
-        #         if int(docID) == postings[0][0] :
-        #             doc_index[docID].append(postings[0][1])
-        #             del postings[0]
-        #         else:
-        #             doc_index[docID].append(0)
-        #     except IndexError:
-        #         doc_index[docID].append(0)
-
-    
-    with open('CACM_doc_index.json', 'w') as outfile :
+    with open('clean_data/CACM_doc_index.json', 'w') as outfile :
         json.dump(doc_index, outfile)
         
 
@@ -164,7 +151,7 @@ if __name__ == "__main__":
     # create_collection("data/cacm.all")
     
     # --- Create reverse index
-    create_index('CACM_collection_txt.json')
+    create_index('clean_data/CACM_collection_txt.json')
     
     # --- Create doc vector length : sum(tf-idf)²
     #doc_vector_length()

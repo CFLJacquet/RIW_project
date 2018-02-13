@@ -18,9 +18,9 @@ from M_vectorial import vect_search
 
 def vectorial_evaluation(recall = 10):
 
-    with open('CACM_questions.json', 'r') as f:
+    with open('clean_data/CACM_questions.json', 'r') as f:
         q = json.load(f)
-    with open('CACM_answers.json', 'r') as f:
+    with open('clean_data/CACM_answers.json', 'r') as f:
         a = json.load(f)
 
     for num, question in q.items():
@@ -64,14 +64,13 @@ def vectorial_evaluation(recall = 10):
                 j=0
             i += 1
         
-        plt.subplot(1,4,int(num))
         plt.plot(rappel, precision,  "o", label='meilleure précision pour chaque rappel',  color = "b")
         plt.step(rappel, curve_pr,  "-", label='PR curve',  color = "red")
         plt.title("Question {}".format(num))
         plt.ylabel("précision")
         plt.xlabel("rappel")
-        if int(num) == 4:
-            plt.show()
+        plt.legend()
+        plt.show()
 
 if __name__ == "__main__":
     vectorial_evaluation()

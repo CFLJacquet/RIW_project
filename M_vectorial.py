@@ -5,13 +5,13 @@ from R_indexation import tokenizer_tf
 from M_boolean_treebuilder import get_postings
 from pprint import pprint
 
-with open('CACM_index_inverse.json', 'r') as f:
+with open('clean_data/CACM_index_inverse.json', 'r') as f:
     INDEX_DATA = json.load(f)
     
-with open('CACM_doc_index.json', 'r') as f:
+with open('clean_data/CACM_doc_index.json', 'r') as f:
     DOC_LENGTH = json.load(f)
 
-with open('CACM_collection_docs', 'rb') as f:
+with open('clean_data/CACM_collection_docs', 'rb') as f:
     u = pickle.Unpickler(f)
     COLLECTION = u.load()
 COLLECTION_IDS = range(1, len(COLLECTION))
@@ -43,12 +43,8 @@ def vect_search(query):
 
     s = sorted(sim, key=lambda x:x[1], reverse=True)
 
-    # ----- To display the title of the docs 
-    # result = []
-    # for elt in s :
-    #     result.append((COLLECTION[elt[0]], "weight: {}".format(round(elt[1], 2))))
     
-    return [str(x[0]) for x in s]  #, result
+    return [str(x[0]) for x in s]
     
 
 if __name__ == "__main__":

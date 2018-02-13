@@ -24,7 +24,7 @@ import json
 from math import log
 import numpy as np
 
-with open("CACM_index_inverse.json", "r") as f:
+with open("clean_data/CACM_index_inverse.json", "r") as f:
     data = json.load(f)
 
 freq = [x[1] for x in data]

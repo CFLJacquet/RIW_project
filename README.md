@@ -11,18 +11,23 @@ Modèles de recherche utilisés:
 
 * python 3.5+
 * librairie nltk
+* matplotlib
+* numpy
 
-## Utiliser l'outil
+## Comment utiliser les fonctions de recherche sur CACM
 
-Ouvrez le module ```R_research.py``` et décommentez les lignes pour tester les deux types de modèle
+Ouvrez le module ```R_research.py``` et décommentez les lignes souhaitées pour tester les modèles
+Le premier modèle est booléen, le deuxième est un TF-IDF standard
 
 ```
 if __name__ == "__main__":
     # --- to test the boolean search function
-    # q = "(document or master) and not (data or access)"
-    # r = boolean_research(q)
-    # print(r)
+    q = "(document or master) and not (data or access)"
+    boolean_research(q)
 
     # --- to test the vectorial search fct
-    vectorial_search(20)
+    t = " code optimization for space efficiency"
+    vectorial_search(t)
 ```
+
+## Comment utiliser les fonctions de recherche sur CACM
