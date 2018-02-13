@@ -29,5 +29,3 @@ if __name__ == "__main__":
     t = " code optimization for space efficiency"
     vectorial_search(t)
 ```
-
-## Comment utiliser les fonctions de recherche sur CACM

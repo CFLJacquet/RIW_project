@@ -16,7 +16,7 @@ import numpy as np
 
 from M_vectorial import vect_search
 
-def vectorial_evaluation(recall = 10):
+def vectorial_evaluation(pas = 1):
 
     with open('clean_data/CACM_questions.json', 'r') as f:
         q = json.load(f)
@@ -27,7 +27,7 @@ def vectorial_evaluation(recall = 10):
         
         # Code to evaluate relevance performance
         v = vect_search(question)
-        recall = 0
+        nv_rappel = 0
         results = []
         precision = []
         rappel = []
@@ -35,14 +35,18 @@ def vectorial_evaluation(recall = 10):
         rel = 0
         while rel != len(a[num]):
            
-            results = v[:recall]
+            results = v[:nv_rappel]
             if not results :
                 rappel.append(0)
                 precision.append(1)
             else:
                 rel = len([i for i in a[num] if i in results])
                 # rappel : nb of relevant docs retrieved /  nb of relevant docs
-                r_score = rel / len(a[num])
+                try:
+                    r_score = rel / len(a[num])
+                except ZeroDivisionError: 
+                    print("WARNING : no good answer for this question")
+                    r_score = 0
                 # precision : nb of relevant docs retrieved /  nb of docs retrieved
                 p_score = rel / len(results)
 
@@ -50,7 +54,7 @@ def vectorial_evaluation(recall = 10):
                     rappel.append(r_score)
                     precision.append(p_score)
                     pr_curve.append([r_score, p_score])
-            recall += 1
+            nv_rappel += pas
         # to get best precision for a level of recall or greater
         i=0
         j=0
